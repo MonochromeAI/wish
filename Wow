@@ -1,0 +1,10 @@
+use App\Http\Controllers\ChefController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/chefs', [ChefController::class, 'index'])->name('chefs.index');
+Route::get('/chefs/create', [ChefController::class, 'create'])->name('chefs.create');
+Route::post('/chefs', [ChefController::class, 'store'])->name('chefs.store');
+Route::get('/chefs/{chef}', [ChefController::class, 'show'])->name('chefs.show');
+Route::get('/chefs/{chef}/edit', [ChefController::class, 'edit'])->name('chefs.edit');
+Route::put('/chefs/{chef}', [ChefController::class, 'update'])->name('chefs.update');
+Route::delete('/chefs/{chef}', [ChefController::class, 'destroy'])->name('chefs.destroy');
