@@ -1,0 +1,24 @@
+public function edit($id)
+{
+    $chef = Chef::findOrFail($id);
+    return view('chefs.edit', compact('chef'));
+}
+
+public function update(Request $request, $id)
+{
+    $chef = Chef::findOrFail($id);
+    $chef->name = $request->input('name');
+    $chef->description = $request->input('description');
+
+    // Proses upload foto jika ada
+    if ($request->hasFile('photo')) {
+        $photo = $request->file('photo');
+        $filename = time() . '_' . $photo->getClientOriginalName();
+        $path = $photo->storeAs('photos', $filename, 'public');
+        $chef->photo = $path;
+    }
+
+    $chef->save();
+
+    return redirect()->route('chefs.index')->with('success', 'Chef berhasil diperbarui.');
+}
