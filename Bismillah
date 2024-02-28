@@ -1,24 +1,88 @@
-public function edit($id)
-{
-    $chef = Chef::findOrFail($id);
-    return view('chefs.edit', compact('chef'));
-}
+<?php
 
-public function update(Request $request, $id)
-{
-    $chef = Chef::findOrFail($id);
-    $chef->name = $request->input('name');
-    $chef->description = $request->input('description');
+namespace App\Http\Controllers;
 
-    // Proses upload foto jika ada
-    if ($request->hasFile('photo')) {
-        $photo = $request->file('photo');
-        $filename = time() . '_' . $photo->getClientOriginalName();
-        $path = $photo->storeAs('photos', $filename, 'public');
-        $chef->photo = $path;
+use Illuminate\Http\Request;
+use App\Models\Chef;
+
+class ChefController extends Controller
+{
+    // Display a listing of the resource.
+    public function index()
+    {
+        $chefs = Chef::all();
+        return view('chefs.index', compact('chefs'));
     }
 
-    $chef->save();
+    // Show the form for creating a new resource.
+    public function create()
+    {
+        return view('chefs.create');
+    }
 
-    return redirect()->route('chefs.index')->with('success', 'Chef berhasil diperbarui.');
+    // Store a newly created resource in storage.
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'specialty' => 'required',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate the photo upload
+        ]);
+
+        $imageName = time().'.'.$request->photo->extension();  
+        $request->photo->move(public_path('images'), $imageName);
+
+        Chef::create([
+            'name' => $request->name,
+            'specialty' => $request->specialty,
+            'photo' => $imageName,
+        ]);
+
+        return redirect()->route('chefs.index')
+            ->with('success', 'Chef created successfully.');
+    }
+
+    // Display the specified resource.
+    public function show(Chef $chef)
+    {
+        return view('chefs.show', compact('chef'));
+    }
+
+    // Show the form for editing the specified resource.
+    public function edit(Chef $chef)
+    {
+        return view('chefs.edit', compact('chef'));
+    }
+
+    // Update the specified resource in storage.
+    public function update(Request $request, Chef $chef)
+    {
+        $request->validate([
+            'name' => 'required',
+            'specialty' => 'required',
+            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Validate the photo upload
+        ]);
+
+        if($request->hasFile('photo')) {
+            $imageName = time().'.'.$request->photo->extension();  
+            $request->photo->move(public_path('images'), $imageName);
+            $chef->photo = $imageName;
+        }
+
+        $chef->name = $request->name;
+        $chef->specialty = $request->specialty;
+        $chef->save();
+
+        return redirect()->route('chefs.index')
+            ->with('success', 'Chef updated successfully');
+    }
+
+    // Remove the specified resource from storage.
+    public function destroy(Chef $chef)
+    {
+        $chef->delete();
+
+        return redirect()->route('chefs.index')
+            ->with('success', 'Chef deleted successfully');
+    }
 }
